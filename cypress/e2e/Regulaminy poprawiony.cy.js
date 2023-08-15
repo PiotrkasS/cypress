@@ -18,6 +18,14 @@ describe('Regulamin', () => {
         const txtFilePath = folderPath + '/' + txtFileName;
 
         cy.visit(`https://${shop}/pl/terms.html`, { timeout: 50000 }); // Visit the specific shop's terms page
+
+        // Dodana zmiana: Zapisz tekst przed sprawdzeniem przycisku "Akceptuję"
+        cy.get('.text_menu__txt').then((element) => {
+          const text = element.text();
+          cy.log(`Menu Text: ${text}`);
+          cy.writeFile(txtFilePath, text); // Zapisz tekst do pliku
+        });
+
         cy.get('#ckdsclmrshtdwn_v2 > .ck_dsclr__btn_v2, .iai_cookie__box .acceptAll').then((btn) => {
           if (btn.length) {
             cy.wrap(btn).click();
@@ -32,11 +40,7 @@ describe('Regulamin', () => {
               cy.writeFile(filePath, screenshotData, 'base64').then(() => {
                 // Zapisz zrzut ekranu do pliku tekstowego
                 cy.writeFile(txtFilePath, screenshotData).then(() => {
-                  cy.get('.text_menu__txt').then((element) => {
-                    const text = element.text();
-                    cy.log(`Menu Text: ${text}`);
-                    cy.writeFile(txtFilePath, text); // Zapisz tekst do pliku
-                  });
+                  // Poniższy kod jest już usunięty, bo został przeniesiony wyżej
                 });
               });
             });
