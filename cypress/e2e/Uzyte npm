@@ -1,0 +1,3 @@
+npm install cypress
+npm install moment
+npm install cypress-file-commands
