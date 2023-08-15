@@ -40,7 +40,7 @@ describe('Regulamin', () => {
               cy.writeFile(filePath, screenshotData, 'base64').then(() => {
                 // Zapisz zrzut ekranu do pliku tekstowego
                 cy.writeFile(txtFilePath, screenshotData).then(() => {
-                  // Poniższy kod jest już usunięty, bo został przeniesiony wyżej
+                  
                 });
               });
             });
