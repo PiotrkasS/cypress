@@ -9,46 +9,39 @@ describe('Regulamin', () => {
     cy.task('readShops').then((shopsList) => {
       cy.wrap(shopsList).each((shop) => {
         cy.log(`Get Terms for: ${shop}`);
+        
+        const folderName = `${currentDate}_${shop.replace(/[^\w\s]/gi, '')}`; // Utwórz nazwę folderu zgodną z datą i nazwą sklepu
+        const folderPath = Cypress.config('screenshotsFolder') + '/' + folderName;
+        cy.task('mkdir', folderPath); // Utwórz folder
 
-        cy.origin(`https://${shop}/`, { args: { shopName: shop, date: currentDate }} , ({ shopName, date }) => {
-          Cypress.on('uncaught:exception', (err, runnable) => {
-            return false
-          });
+        const fileName = 'screenshot.png'; // Nazwa pliku zrzutu ekranu
+        const txtFileName = 'terms.txt'; // Nazwa pliku tekstowego
+        const filePath = `${folderPath}/${fileName}`;
+        const txtFilePath = `${folderPath}/${txtFileName}`;
 
-          const fileName = `${date}_${shopName}`;
-          const txtFileName = `${date}_${shopName}.txt`;
-          const folderName = shopName.replace(/[^\w\s]/gi, ''); // Usuwa znaki specjalne z nazwy sklepu
-          const folderPath = Cypress.config('screenshotsFolder') + '/' + folderName;
-          const filePath = '/' + folderName + '/' + fileName;
-          const txtFilePath = folderPath + '/' + txtFileName;
-
-          cy.visit('/pl/terms.html', { timeout: 50000 });
-          cy.get('#ckdsclmrshtdwn_v2 > .ck_dsclr__btn_v2, .iai_cookie__box .acceptAll').then((btn) => {
-            if (btn.length) {
-              cy.wrap(btn).click();
-            }
-          })
-          cy.contains('Regulamin').should('be.visible');
-          cy.contains('Regulamin').click();
-  
-          cy.screenshot(filePath, { capture: 'viewport' }).then((screenshotData) => {
-            if (typeof screenshotData === 'string' && screenshotData.length > 0) {
-              cy.task('mkdir', folderPath).then(() => {
-                cy.writeFile(filePath, screenshotData, 'base64').then(() => {
-                  // Zapisz zrzut ekranu do pliku tekstowego
-                  cy.writeFile(txtFilePath, screenshotData).then(() => {
-                    cy.readFile(txtFilePath).then((fileContent) => {
-                      cy.log(`Zawartość zrzutu ekranu zapisana w pliku tekstowym:\n${fileContent}`);
-                    });
-                  });
-                });
-              });
-            } else {
-              // throw new Error('Błąd: Brak danych screenshotu.');
-            }
-          })
+        cy.visit(`https://${shop}/pl/terms.html`, { timeout: 50000 }); // Odwiedź stronę z regulaminem
+        cy.get('#ckdsclmrshtdwn_v2 > .ck_dsclr__btn_v2, .iai_cookie__box .acceptAll').then((btn) => {
+          if (btn.length) {
+            cy.wrap(btn).click();
+          }
         });
+        cy.contains('Regulamin').should('be.visible');
+        cy.contains('Regulamin').click();
 
+        // Zapisz zrzut ekranu
+        cy.screenshot(filePath, { capture: 'fullPage' }).then((screenshotData) => {
+          if (typeof screenshotData === 'string' && screenshotData.length > 0) {
+            cy.writeFile(txtFilePath, screenshotData, 'base64').then(() => {
+              // Zapisz tekst do pliku
+              cy.get('.text_menu__txt').then((element) => {
+                const text = element.text();
+                cy.writeFile(txtFilePath, text, { flag: 'a+' }); // Dodaj do pliku tekstowego
+              });
+            });
+          } else {
+            // throw new Error('Błąd: Brak danych screenshotu.');
+          }
+        });
       });
     });
   });
